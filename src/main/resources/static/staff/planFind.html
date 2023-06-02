@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>跟踪的实施中的任务详情页</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1000px">
+    <h1>根据以下条件查询计划</h1>
+    <template>
+        <el-form ref="form" :model="submitPlanForm" label-width="80px" size="mini">
+            <div style="width: 75%">
+                <el-form-item label="计划名称">
+                    <el-input v-model="submitPlanForm.planName"></el-input>
+                </el-form-item>
+            </div>
+            <el-row>
+                <el-col :span="9">
+                    <el-form-item label="开始时间">
+                        <el-col>
+                            <el-date-picker type="date" placeholder="选择日期"
+                                            v-model="submitPlanForm.bTime"
+                                            style="width: 100%;"
+                                            format="yyyy-MM-dd"
+                                            value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-col>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="9">
+                    <el-form-item label="结束时间">
+                        <el-col>
+                            <el-date-picker type="date" placeholder="选择日期"
+                                            v-model="submitPlanForm.eTime"
+                                            style="width: 100%;"
+                                            format="yyyy-MM-dd"
+                                            value-format="yyyy-MM-dd"></el-date-picker>
+                        </el-col>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="6">
+
+                    <el-form-item label="上层任务">
+                        <!--根据当前登录主管的username，查询到该主管下属的员工，在下拉栏显示-->
+                        <!--显示值为员工姓名，数据绑定的是员工id-->
+                        <el-select v-model="submitPlanForm.belongTask" placeholder="请选择任务">
+                            <el-option v-for="table in tableData"
+                                       :label="table.taskName"
+                                       :value="table.id"
+                                       :key="table.taskName">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                    <el-form-item label="完成状态">
+                        <el-input
+                                v-model="submitPlanForm.planCondition">
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                    <el-form-item label="反馈状态">
+                        <el-input
+                                v-model="submitPlanForm.feedback">
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-form-item size="large">
+                <el-button type="primary" @click="clean()">重置</el-button>
+                <el-button type="success" @click="onSubmit()">提交</el-button>
+            </el-form-item>
+        </el-form>
+    </template>
+<h2>查询到的计划如下：</h2>
+    <template>
+        <el-table
+                ref="multipleTable"
+                :data="returnFindPlan"
+                tooltip-effect="dark"
+                style="width: 100%">
+            <el-table-column
+                    type="selection"
+                    width="50">
+            </el-table-column>
+            <el-table-column
+                    prop="planName"
+                    label="计划名称"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="planCondition"
+                    label="完成状态"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="feedback"
+                    label="是否反馈"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="bTime"
+                    label="开始时间"
+                    width="150">
+            </el-table-column>
+            <el-table-column
+                    prop="eTime"
+                    label="结束时间"
+                    width="150">
+            </el-table-column>
+            <el-table-column label="操作" width="150">
+                <!--使用插槽，方便获取当前行数据-->
+                <template slot-scope="scope">
+                    <el-button type="info" @click="showDetails(scope.row)">详细信息</el-button>
+                    <el-dialog title="计划详细信息" :visible.sync="dialogTableVisible">
+                        <template>
+                            <el-descriptions direction="vertical" :column="3" border>
+                                <el-descriptions-item label="计划名称">{{ planDetailInfo.planName }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="计划描述" :span="2">{{ planDetailInfo.planDesp }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="开始时间">{{ planDetailInfo.bTime }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="结束时间" :span="2">{{ planDetailInfo.eTime }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="上层任务">{{ planDetailInfo.belongTask }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="计划状态" :span="2">{{ planDetailInfo.planCondition }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="反馈状态">{{ planDetailInfo.feedback }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="反馈">{{ planDetailInfo.returnInfo }}
+                                </el-descriptions-item>
+                            </el-descriptions>
+                        </template>
+                    </el-dialog>
+                </template>
+            </el-table-column>
+        </el-table>
+    </template>
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+            //所属任务的下拉列表
+            tableData:[{}],
+            //筛选条件数据
+            submitPlanForm: {},
+            //查询到的计划
+            returnFindPlan: [{}],
+            //一条计划的详细信息
+            planDetailInfo:{},
+            //一条计划详细信息的窗口显示状态，默认不显示
+            dialogTableVisible:false,
+        },
+        methods: {
+            //取消编辑
+            clean() {
+                window.location.reload();
+            },
+            ////点击一条计划的详细信息，true显示窗口，当前行的数据传给planDetailInfo
+            showDetails(info) {
+                this.planDetailInfo = info;
+                this.dialogTableVisible = true;
+            },
+            onSubmit(){
+                $.ajax({
+                    url: '/plan/findPlanSubsume',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.submitPlanForm),
+                    contentType: 'application/json',
+                    success: (data) => {
+                        this.returnFindPlan = data;
+                        console.log(this.returnFindPlan);
+                    }, error:function (data) {
+                        console.log(data);
+                    },
+                });
+            },
+        },
+        created() {
+            if (sessionStorage.getItem('isLoggedIn') != 1) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            }else {
+                const username = sessionStorage.getItem('whoLoggedIn');
+                //获取获取属于该员工的所有任务
+                $.ajax({
+                    url: '/plan/findPlanByUsername?username='+username,
+                    type: 'get',
+                    dataType: 'json',
+                    success: (data) => {
+                        this.tableData = data;
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    },
+                });
+            }
+        }
+    })
+</script>
+</html>

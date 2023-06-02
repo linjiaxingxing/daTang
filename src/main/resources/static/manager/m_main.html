@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>主管的iframe页面</title>
+
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1500px">
+    <!-- 顶部iframe，不需要动态改变 -->
+    <iframe src="../top.png" width="1300" height="150" frameborder="0"></iframe>
+    <!-- 左侧导航栏iframe -->
+    <iframe src="m_left.html" name="iframeLeft" width="250" height="650" frameborder="0"
+            style="background-color: #B7BDDD"></iframe>
+    <!-- 右侧内容iframe，需要动态改变 -->
+    <iframe src="" name="iframeContent" width="1045" height="650" frameborder="0"
+            style="background-color: #B7BDDD"></iframe>
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+        },
+        methods: {},
+        created() {
+            //防止绕过登录
+            if (sessionStorage.getItem('isLoggedIn') != 2) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            }
+        }
+    })
+</script>
+</html>

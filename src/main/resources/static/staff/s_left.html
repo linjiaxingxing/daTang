@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+    <style scoped>
+        /* 去除侧边菜单的白边 */
+        .el-menu {
+            border: 0 !important;
+        }
+    </style>
+</head>
+<body>
+<div id="app" style="position: relative;height: 630px"><!--设置大的盒子为相对定位 -->
+    <template>
+        <el-row class="tac">
+            <el-col :span="24">
+                <!-- 使用 element-ui 的 el-menu 组件实现菜单列表 -->
+                <el-menu
+                        default-active="?"
+                         class="el-menu-vertical-demo"
+                         background-color="#B7BDDD"
+                         text-color="#000000"
+                         active-text-color="#ffd04b"
+                         :router="true">
+                    <!-- 使用 el-menu-item 组件定义每一个菜单项，并指定跳转的页面 -->
+                    <el-menu-item index="planMine.html" @click="handleMenuItemClick('planMine.html')">
+                        <i class="el-icon-menu"></i>
+                        <span slot="title">我的任务</span>
+                    </el-menu-item>
+                    <el-menu-item index="planManage_all.html" @click="handleMenuItemClick('planManage_all.html')">
+                        <i class="el-icon-menu"></i>
+                        <span slot="title">计划管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="planFind.html" @click="handleMenuItemClick('planFind.html')">
+                        <i class="el-icon-menu"></i>
+                        <span slot="title">查询计划</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-col>
+        </el-row>
+    </template>
+
+        <div style=" position: absolute;bottom: 0;left: 0;width: 220px;height: 50px;">
+            用户名:<span class="whoInfo"></span>
+            <el-button type="danger" @click="logout">退出登录</el-button>
+        </div>
+
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {},
+        methods: {
+            logout(){
+                // 设置 Session Storage，登陆状态清空
+                sessionStorage.setItem('isLoggedIn', '');
+                //登录的是谁，清空
+                sessionStorage.setItem('whoLoggedIn', '');
+                //跳转登录页面    获取父窗口对象
+                let parentWindow = window.parent;
+                // 修改父窗口的location属性
+                parentWindow.location.href = '/login.html';
+            },
+            handleMenuItemClick(href) {
+                // 获取右侧内容区域的 iframe 元素
+                const iframeContent = parent.document.querySelector('#app iframe[name="iframeContent"]')
+
+                // 修改 iframe 的 src 属性，实现跳转
+                iframeContent.setAttribute('src', href)
+            }
+        },
+        created() {
+            if (sessionStorage.getItem('isLoggedIn') != 1) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            }
+            const spanElem = document.querySelector('.whoInfo');
+            spanElem.textContent = sessionStorage.getItem('whoLoggedIn');
+        }
+    })
+</script>
+</html>

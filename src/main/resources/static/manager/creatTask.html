@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>指定任务页面</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1000px">
+    <el-form ref="form" :model="submitTaskForm" label-width="80px" size="mini">
+        <div style="width: 50%">
+            <el-form-item label="活动名称">
+                <el-input v-model="submitTaskForm.taskName"></el-input>
+            </el-form-item>
+            <el-form-item label="活动描述">
+                <el-input v-model="submitTaskForm.taskDesp"></el-input>
+            </el-form-item>
+        </div>
+
+        <el-form-item label="开始时间">
+            <el-col :span="5">
+                <el-date-picker type="date" placeholder="选择日期"
+                                v-model="submitTaskForm.bTime"
+                                style="width: 100%;"
+                                format="yyyy-MM-dd"
+                                value-format="yyyy-MM-dd">
+                </el-date-picker>
+                <!--format 控制用户可见的日期格式，value-format 控制实际绑定的值的日期格式-->
+            </el-col>
+            <el-col class="line" :span="0.5">---结束时间</el-col>
+            <el-col :span="5">
+                <el-date-picker type="date" placeholder="选择日期"
+                                v-model="submitTaskForm.eTime"
+                                style="width: 100%;"
+                                format="yyyy-MM-dd"
+                                value-format="yyyy-MM-dd"></el-date-picker>
+            </el-col>
+        </el-form-item>
+
+        <el-form-item label="发布人">
+            <div style="width: 10%">
+                <el-input
+                        v-model="submitTaskForm.belongZhuguan"
+                        :disabled="true">{{submitTaskForm.belongZhuguan}}
+                </el-input></div>
+        </el-form-item>
+        <el-form-item label="实施人">
+            <!--根据当前登录主管的username，查询到该主管下属的员工，在下拉栏显示-->
+            <!--显示值为员工姓名，数据绑定的是员工id-->
+            <el-select v-model="submitTaskForm.belongStaff" placeholder="请选择下属员工">
+                <el-option v-for="staff in subordinateStaff"
+                           :label="staff.username"
+                           :value="staff.id"
+                           :key="staff.username">
+                </el-option>
+            </el-select>
+        </el-form-item>
+        <el-form-item label="任务状态">
+            <div style="width: 10%">
+            <el-input
+                    v-model="submitTaskForm.taskCondition"
+                    :disabled="true">
+            </el-input></div>
+        </el-form-item>
+        <el-form-item size="large">
+            <el-button>重置</el-button>
+            <el-button type="primary" @click="onSubmit">提交</el-button>
+        </el-form-item>
+    </el-form>
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+            //收集用户输入的，要创建的任务信息，task
+            submitTaskForm: {},
+            //页面加载时，获取的该主管下属的所有员工信息
+            subordinateStaff:[{}],
+        },
+        methods: {
+            onSubmit() {
+                $.ajax({
+                    url: '/task/addTask',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.submitTaskForm),
+                    contentType: 'application/json',
+                    success: function () {
+
+                    }, error:function () {
+
+                    },
+                });
+                alert("添加成功，请返回查看！");
+            }
+        },
+        created() {
+            if (sessionStorage.getItem('isLoggedIn') != 2) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            }else {
+                const username = sessionStorage.getItem('whoLoggedIn');
+                console.log(username)
+                //页面加载时，指定某些用户不可修改的默认信息
+                $.ajax({
+                    url: '/user/findByName?username='+username,
+                    type: 'get',
+                    dataType: 'json',
+                    success: (data) => {
+                        console.log(data)
+                        console.log("传过来的老板id为："+data.id)
+                        //任务发布人，指定为当前登录的主管，不可修改
+                        this.submitTaskForm.belongZhuguan = data.id;
+                        //新创建的任务，状态为未实施，不可修改
+                        this.submitTaskForm.taskCondition = '未实施';
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    },
+                });
+
+                $.ajax({
+                    url: '/user/findByBossName?username='+username,
+                    type: 'get',
+                    dataType: 'json',
+                    success: (data) => {
+                        //主管下属员工信息
+                        this.subordinateStaff = data;
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    },
+                });
+            }
+        }
+    })
+</script>
+</html>

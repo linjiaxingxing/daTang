@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.datang.demos.mapper.TaskMapper">
+    <select id="findTaskAll" resultType="task">
+        SELECT a.id,
+               a.task_name,
+               a.task_desp,
+               a.b_time,
+               a.e_time,
+               a.real_b_time,
+               a.real_e_time,
+               b.username AS belong_zhuguan,
+               c.username AS belong_staff,
+               a.task_condition
+        FROM task a
+                 LEFT JOIN user b
+                           ON a.belong_zhuguan = b.id
+                 LEFT JOIN user c
+                           ON a.belong_staff = c.id;
+    </select>
+    <select id="findTaskByName" resultType="task">
+        SELECT a.id,
+               a.task_name,
+               a.task_desp,
+               a.b_time,
+               a.e_time,
+               a.real_b_time,
+               a.real_e_time,
+               b.username AS belong_zhuguan,
+               c.username AS belong_staff,
+               a.task_condition
+        FROM task a
+                 LEFT JOIN user b
+                           ON a.belong_zhuguan = b.id
+                 LEFT JOIN user c
+                           ON a.belong_staff = c.id
+        where b.username = #{username};
+    </select>
+    <select id="findTaskById" resultType="task">
+        SELECT a.id,
+               a.task_name,
+               a.task_desp,
+               a.b_time,
+               a.e_time,
+               a.real_b_time,
+               a.real_e_time,
+               b.username AS belong_zhuguan,
+               c.username AS belong_staff,
+               a.task_condition
+        FROM task a
+                 LEFT JOIN user b
+                           ON a.belong_zhuguan = b.id
+                 LEFT JOIN user c
+                           ON a.belong_staff = c.id
+        where a.id = ${id}
+    </select>
+
+    <insert id="addTask" parameterType="com.example.datang.demos.entity.Task">
+        INSERT INTO task (task_name, task_desp, b_time, e_time, belong_staff, belong_zhuguan, task_condition)
+        VALUES (#{taskName}, #{taskDesp}, #{bTime}, #{eTime}, #{belongStaff}, #{belongZhuguan}, #{taskCondition});
+    </insert>
+
+    <select id="findTaskUndone" resultType="task">
+        SELECT a.id,
+               a.task_name,
+               a.task_desp,
+               a.b_time,
+               a.e_time,
+               a.real_b_time,
+               a.real_e_time,
+               b.username AS belong_zhuguan,
+               c.username AS belong_staff,
+               a.task_condition
+        FROM task a
+                 LEFT JOIN user b
+                           ON a.belong_zhuguan = b.id
+                 LEFT JOIN user c
+                           ON a.belong_staff = c.id
+        where b.username = #{arg0}
+        and a.task_condition = #{arg1};
+    </select>
+
+
+
+    <update id="editTask" parameterType="com.example.datang.demos.entity.Task">
+        UPDATE task
+        SET task_name = #{taskName},
+            task_desp = #{taskDesp},
+            b_time = #{bTime},
+            e_time = #{eTime},
+            belong_staff = #{belongStaff},
+            task_condition = #{taskCondition}
+        WHERE id = #{id};
+    </update>
+
+    <delete id="delTask" parameterType="int">
+        DELETE FROM task WHERE id = #{id}
+    </delete>
+</mapper>

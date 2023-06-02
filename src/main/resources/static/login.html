@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1300px;height: 800px;position: relative;background: url(login.png);"><!--设置大的盒子为相对定位 -->
+    <!--登录框-->
+    <div style=" position: absolute;bottom: 200px;left: 150px;width: 300px;height: 200px">
+        <el-form ref="form" :model="loginForm" label-width="80px" size="mini">
+            <el-form-item label="用户名">
+                <el-input v-model="loginForm.username"></el-input>
+            </el-form-item>
+            <el-form-item label="密码">
+                <el-input v-model="loginForm.password"></el-input>
+            </el-form-item>
+            <el-form-item size="large">
+                <el-button type="primary" @click="submitForm">登录</el-button>
+                <el-button type="primary" @click="submitAdmin">管理员登录</el-button>
+                <span class="el-form-item__error"></span>
+            </el-form-item>
+        </el-form>
+    </div>
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+            //用户输入的账号，密码
+            loginForm: {},
+        },
+        methods: {
+            //点击管理员登录
+            submitAdmin(){
+                $.ajax({
+                    url: '/admin/login',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.loginForm),
+                    contentType: 'application/json',
+                    success: function (data) {
+                        console.log(this.loginForm);// 此时的 this 为 success 回调函数的 this 上下文，不是 Vue 实例的上下文
+                        switch (data) {
+                            case -1:
+                                //在用户名框，添加“管理员不存在”错误信息
+                                document.querySelector('.el-form-item__error').textContent = "管理员不存在";
+                                break;
+                            case 0:
+                                //在密码框，添加“管理员密码错误”错误信息
+                                document.querySelector('.el-form-item__error').textContent = "管理员密码错误";
+                                break;
+                            case 9:
+                                //自定义设置的管理员身份码
+                                document.querySelector('.el-form-item__error').textContent = "管理员身份验证通过，登陆中...";
+                                // 设置 Session Storage
+                                sessionStorage.setItem('isLoggedIn', '9');
+                                //设置登录的是谁
+                                sessionStorage.setItem('whoLoggedIn', this.loginForm.username);
+                                //登陆成功跳转页面
+                                setTimeout(function(){
+                                    window.location.href = "/admin/a_main.html";
+                                }, 2000);
+                                break;
+                        }
+                        // console.log(data);
+                    }.bind(this),// 将 success 回调函数中的 this 上下文绑定为 Vue 实例的上下文
+                    error: function (data) {
+                        console.log(data);
+                    }
+                })
+            },
+            //点击主管、员工登录
+            submitForm() {
+                $.ajax({
+                    url: '/user/login',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.loginForm),
+                    contentType: 'application/json',
+                    success: function (data) {
+                        console.log(this.loginForm);// 此时的 this 为 success 回调函数的 this 上下文，不是 Vue 实例的上下文
+                        switch (data) {
+                            case -1:
+                                    //在用户名框，添加“用户不存在”错误信息
+                                document.querySelector('.el-form-item__error').textContent = "用户不存在";
+                                break;
+                            case 0:
+                                    //在密码框，添加“密码错误”错误信息
+                                document.querySelector('.el-form-item__error').textContent = "密码错误";
+                                break;
+                            case 1:
+                                //自定义设置员工身份码为1
+                                document.querySelector('.el-form-item__error').textContent = "员工身份验证通过，登陆中...";
+                                // 设置 Session Storage
+                                sessionStorage.setItem('isLoggedIn', '1');
+                                //设置登录的是谁
+                                sessionStorage.setItem('whoLoggedIn', this.loginForm.username);
+                                // sessionStorage.setItem('whoLoggedIn', this.loginForm.id);
+                                //登陆成功跳转页面
+                                setTimeout(function(){
+                                    window.location.href = "/staff/s_main.html";
+                                }, 2000);
+                                break;
+                            case 2:
+                                //自定义设置主管身份码为2
+                                document.querySelector('.el-form-item__error').textContent = "主管身份验证通过，登录中...";
+                                // 设置 Session Storage
+                                sessionStorage.setItem('isLoggedIn', '2');
+                                //设置登录的是谁
+                                sessionStorage.setItem('whoLoggedIn', this.loginForm.username);
+                                //登陆成功跳转页面
+                                setTimeout(function(){
+                                    window.location.href = "/manager/m_main.html";
+                                }, 2000);
+                                break;
+                        }
+                        // console.log(data);
+                    }.bind(this),// 将 success 回调函数中的 this 上下文绑定为 Vue 实例的上下文
+                    error: function (data) {
+                        console.log(data);
+                    }
+                })
+            },
+        },
+        created() {
+
+        }
+    })
+</script>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑员工、主管信息</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1000px">
+    <template>
+        <el-table
+                ref="multipleTable"
+                :data="tableData"
+                tooltip-effect="dark"
+                style="width: 100%"
+                @selection-change="handleSelectionChange">
+            <el-table-column
+                    type="selection"
+                    width="50">
+            </el-table-column>
+            <el-table-column
+                    prop="username"
+                    label="姓名"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="gender"
+                    label="性别"
+                    width="80">
+            </el-table-column>
+            <el-table-column
+                    prop="entryTime"
+                    label="入职时间"
+                    width="150">
+            </el-table-column>
+            <el-table-column
+                    prop="position"
+                    label="职位"
+                    width="150">
+            </el-table-column>
+            <el-table-column label="操作" width="300">
+                <!--使用插槽，方便获取当前行数据-->
+                <template slot-scope="scope">
+                    <el-button type="primary" @click="editDetails(scope.row)">编辑</el-button>
+
+                    <el-dialog title="编辑员工信息" :visible.sync="dialogFormVisible">
+                        <el-form :model="empDetailInfo">
+                            员工姓名:
+                            <el-input v-model="empDetailInfo.username"></el-input>
+                            登录密码:
+                            <el-input v-model="empDetailInfo.password"></el-input>
+                            上司(不可更改):
+                            <el-input v-model="empDetailInfo.belong" :disabled="true"></el-input>
+                            性别:
+                            <el-input v-model="empDetailInfo.gender"></el-input>
+                            入职时间:
+                            <el-input v-model="empDetailInfo.entryTime"></el-input>
+                            职位:
+                            <el-input v-model="empDetailInfo.position"></el-input>
+                            出生年月:
+                            <el-input v-model="empDetailInfo.birthday"></el-input>
+                            学历:
+                            <el-input v-model="empDetailInfo.education"></el-input>
+                            专业:
+                            <el-input v-model="empDetailInfo.major"></el-input>
+                            工作经历:
+                            <el-input v-model="empDetailInfo.experience"></el-input>
+                        </el-form>
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogFormVisible = false">取 消</el-button>
+                            <el-button type="primary" @click="submitEdit()">确 定</el-button>
+                        </div>
+                    </el-dialog>
+
+
+                    <el-button type="danger" @click="open(scope.row.id)">删除</el-button>
+                    <!--<el-button type="danger" @click="delUser(scope.row.id)">删除</el-button>-->
+                    <el-button type="info" @click="showDetails(scope.row)">详细信息</el-button>
+                    <el-dialog title="员工详细信息" :visible.sync="dialogTableVisible">
+                        <template>
+                            <el-descriptions direction="vertical" :column="3" border>
+                                <el-descriptions-item label="员工姓名" v-model="empDetailInfo.username">
+                                    {{ empDetailInfo.username }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="上司" v-model="empDetailInfo.belong"> {{ empDetailInfo.belong
+                                    }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="性别" v-model="empDetailInfo.gender"> {{ empDetailInfo.gender
+                                    }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="入职年月" v-model="empDetailInfo.entryTime">
+                                    {{ empDetailInfo.entryTime }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="职位" v-model="empDetailInfo.position">
+                                    {{ empDetailInfo.position }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="出生年月" v-model="empDetailInfo.birthday">
+                                    {{ empDetailInfo.birthday }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="学历" v-model="empDetailInfo.education">
+                                    {{ empDetailInfo.education }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="专业" v-model="empDetailInfo.major" :span="2">
+                                    {{ empDetailInfo.major }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="工作经历" :span="4" v-model="empDetailInfo.experience">
+                                    {{ empDetailInfo.experience }}
+                                </el-descriptions-item>
+                            </el-descriptions>
+                        </template>
+                    </el-dialog>
+                </template>
+            </el-table-column>
+        </el-table>
+    </template>
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+            //页面加载时获取的员工、主管信息，对应实体类User
+            tableData: [{}],
+            //详情描述窗口的显示状态
+            dialogTableVisible: false,
+            //编辑窗口的显示状态
+            dialogFormVisible: false,
+            //当前一行的user数据
+            empDetailInfo: {},
+        },
+        methods: {
+            //点击编辑按钮，true显示窗口，当前行信息传给empDetailInfo，直接用scope.row.id、.username访问数据貌似不行，貌似
+            editDetails(info) {
+                this.empDetailInfo = info;
+                this.dialogFormVisible = true;
+            },
+            //点击详细信息，true显示窗口，当前行的数据传给empDetailInfo
+            showDetails(info) {
+                this.empDetailInfo = info;
+                this.dialogTableVisible = true;
+            },
+            //点击编辑窗口的确定，提交输入的修改信息，到后台更新数据
+            submitEdit() {
+                console.log(this.empDetailInfo);
+                $.ajax({
+                    url: '/user/edit',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.empDetailInfo),
+                    contentType: 'application/json',
+                    success: function () {
+
+                    }, error: function () {
+
+                    },
+                });
+                this.dialogFormVisible = false;
+                window.location.reload();
+                alert("编辑成功了！");
+
+            },
+            //删除当前员工，scope.row.id传入当前行user的id
+            delUser(id) {
+                console.log(id)
+                $.ajax({
+                    url: '/user/del?id=' + id,
+                    dataType: 'json',
+                    type: 'get',
+                    success: function () {
+                    }, error() {
+                    },
+                })
+            },
+            //“是否删除”的确认弹窗
+            open(id) {
+                this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.delUser(id);
+                    this.$message({
+                        type: 'success',
+                        message: '删除成功!'
+                    });
+                    setTimeout(function(){
+                        window.location.reload();
+                    }, 2000);
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+
+            },
+
+        },
+        created() {
+            if (sessionStorage.getItem('isLoggedIn') != 9) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            } else {
+                $.ajax({
+                    url: '/user/findAllUser',
+                    type: 'get',
+                    dataType: 'json',
+                    success: (data) => {
+                        console.log(data);
+                        this.tableData = data;
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    },
+                })
+            }
+        }
+    })
+</script>
+</html>

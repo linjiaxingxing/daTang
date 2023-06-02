@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加员工、主管页面</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1000px">
+    <h1>添加人员</h1>
+    <template>
+        <el-input v-model="inputUser.username" placeholder="请输入姓名"></el-input>
+        <el-input v-model="inputUser.password" placeholder="请输入密码"></el-input>
+        <el-input v-model="inputUser.belong" placeholder="请输入是谁的手下,1、财务主管  2、技术主管  3、人力主管"></el-input>
+        <el-input v-model="inputUser.gender" placeholder="请输入性别"></el-input>
+        <el-input v-model="inputUser.entryTime" placeholder="请输入入职时间"></el-input>
+        <el-input v-model="inputUser.position" placeholder="请输入职位"></el-input>
+        <el-input v-model="inputUser.birthday" placeholder="请输入出生年月"></el-input>
+        <el-input v-model="inputUser.education" placeholder="请输入学历"></el-input>
+        <el-input v-model="inputUser.major" placeholder="请输入专业"></el-input>
+        <el-input v-model="inputUser.experience" placeholder="请输入工作经历"></el-input>
+        <el-button type="danger" @click="clearInput">清空输入</el-button>
+        <el-button type="primary" @click="SubmitFrom">确认添加</el-button>
+    </template>
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+            //接收用户输入内容，对应实体类User
+            inputUser: {},
+        },
+        methods: {
+            //清空输入
+            clearInput() {
+                window.location.reload();
+            },
+            //确认提交
+            SubmitFrom() {
+                $.ajax({
+                    url: '/user/add',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.inputUser),
+                    contentType: 'application/json',
+                    success: function () {
+
+                    }, error:function () {
+
+                    },
+                });
+                alert("添加成功了")
+            },
+        },
+        created() {
+            if (sessionStorage.getItem('isLoggedIn') != 9) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            }
+        }
+    })
+</script>
+</html>

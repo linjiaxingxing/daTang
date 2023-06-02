@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1000px">
+    <el-button-group>
+        <el-button type="danger" icon="el-icon-arrow-left" @click="back()">返回</el-button>
+    </el-button-group>
+    <h1/>
+    <h2/>
+    <template>
+        <el-form ref="form" :model="submitPlanForm" label-width="80px" size="mini">
+            <div style="width: 50%">
+                <el-form-item label="计划名称">
+                    <el-input v-model="submitPlanForm.planName"></el-input>
+                </el-form-item>
+                <el-form-item label="计划描述">
+                    <el-input v-model="submitPlanForm.planDesp"></el-input>
+                </el-form-item>
+            </div>
+            <el-row>
+                <el-col :span="9">
+                    <el-form-item label="开始时间">
+                        <el-col>
+                            <el-date-picker type="date" placeholder="选择日期"
+                                            v-model="submitPlanForm.bTime"
+                                            style="width: 100%;"
+                                            format="yyyy-MM-dd"
+                                            value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-col>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="9">
+                    <el-form-item label="结束时间">
+                        <el-col>
+                            <el-date-picker type="date" placeholder="选择日期"
+                                            v-model="submitPlanForm.eTime"
+                                            style="width: 100%;"
+                                            format="yyyy-MM-dd"
+                                            value-format="yyyy-MM-dd"></el-date-picker>
+                        </el-col>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
+                <el-col :span="6">
+                    <el-form-item label="上层任务">
+                        <el-input v-model="submitPlanForm.belongTask" :disabled="true">
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                    <el-form-item label="完成状态">
+                        <el-input
+                                v-model="submitPlanForm.planCondition">
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                    <el-form-item label="反馈状态">
+                        <el-input
+                                v-model="submitPlanForm.feedback" >
+                        </el-input>
+                    </el-form-item>
+                </el-col>
+            </el-row>
+            <el-row>
+            <el-col :span="18">
+            <el-form-item label="反馈内容">
+                <el-input
+                        type="textarea"
+                        :rows="3"
+                        v-model="submitPlanForm.returnInfo">
+                </el-input>
+            </el-form-item></el-col></el-row>
+            <el-form-item size="large">
+                <el-button type="primary" @click="clean()">重置</el-button>
+                <el-button type="success" @click="onSubmit">提交</el-button>
+            </el-form-item>
+        </el-form>
+    </template>
+
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+            submitPlanForm:{},
+        },
+        methods: {
+            //返回上一层页面
+            back() {
+                window.history.go(-1)
+            },
+            //取消编辑
+            clean(){
+                window.location.reload();
+            },
+            onSubmit(){
+                $.ajax({
+                    url: '/plan/editPlan',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.submitPlanForm),
+                    contentType: 'application/json',
+                    success: function () {
+
+                    }, error:function () {
+
+                    },
+                });
+                alert("编辑成功了！");
+            },
+        },
+        created() {
+            //解析：window.location.href='/staff/planManage_edit.html?id='+id;   路径中传递过来的计划id
+            const searchParams = new URLSearchParams(window.location.search);
+            this.id = searchParams.get('id');
+            console.log(this.id)
+
+
+            if (sessionStorage.getItem('isLoggedIn') != 1) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            }else {
+                //页面加载时，通过 编辑计划 传来的计划id，查询单条计划
+                $.ajax({
+                    url: '/plan/findPlanById?id=' + this.id,
+                    type: 'get',
+                    dataType: 'json',
+                    success: (data) => {
+                        this.submitPlanForm = data;
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    },
+                });
+            };
+        }
+    })
+</script>
+</html>

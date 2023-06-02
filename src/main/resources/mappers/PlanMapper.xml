@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.datang.demos.mapper.PlanMapper">
+    <select id="findPlanByTaskId" resultType="plan">
+        SELECT a.id,
+               a.plan_name,
+               a.plan_desp,
+               a.b_time,
+               a.e_time,
+               b.task_name AS belong_task,
+               a.plan_condition,
+               a.feedback,
+               a.return_info
+        FROM plan a
+                 LEFT JOIN task b
+                           ON a.belong_task= b.id
+        where b.id=${id}
+    </select>
+
+    <select id="findPlanByUsername" resultType="task">
+        SELECT a.id,
+               a.task_name,
+               a.task_desp,
+               a.b_time,
+               a.e_time,
+               a.real_b_time,
+               a.real_e_time,
+               b.username AS belong_zhuguan,
+               c.username AS belong_staff,
+               a.task_condition
+        FROM task a
+                 LEFT JOIN user b
+                           ON a.belong_zhuguan = b.id
+                 LEFT JOIN user c
+                           ON a.belong_staff = c.id
+        where c.username = #{username};
+    </select>
+    <select id="findPlanById" resultType="plan">
+        SELECT a.id,
+               a.plan_name,
+               a.plan_desp,
+               a.b_time,
+               a.e_time,
+               b.task_name AS belong_task,
+               a.plan_condition,
+               a.feedback,
+               a.return_info
+        FROM plan a
+                 LEFT JOIN task b
+                           ON a.belong_task= b.id
+        where a.id=${id}
+    </select>
+
+    <update id="editPlan" parameterType="com.example.datang.demos.entity.Plan">
+        UPDATE plan
+        SET plan_name = #{planName},
+            plan_desp = #{planDesp},
+            b_time = #{bTime},
+            e_time = #{eTime},
+            plan_condition = #{planCondition},
+            feedback = #{feedback},
+            return_info = #{returnInfo}
+        WHERE id = #{id};
+    </update>
+
+    <insert id="addPlan" parameterType="com.example.datang.demos.entity.Plan">
+        INSERT INTO plan (plan_name, plan_desp, b_time, e_time, belong_task, plan_condition, feedback,return_info)
+        VALUES (#{planName}, #{planDesp}, #{bTime}, #{eTime}, #{belongTask}, #{planCondition}, #{feedback},#{returnInfo});
+    </insert>
+
+    <delete id="delPlan" parameterType="int">
+        DELETE FROM plan WHERE id = #{id}
+    </delete>
+
+    <select id="findPlanSubsume" resultType="plan">
+        SELECT a.id,
+               a.plan_name,
+               a.plan_desp,
+               a.b_time,
+               a.e_time,
+               b.task_name AS belong_task,
+               a.plan_condition,
+               a.feedback,
+               a.return_info
+        FROM plan a
+                 LEFT JOIN task b
+                           ON a.belong_task= b.id
+        <where>
+            <if test="planName != null and planName != ''">
+                AND a.plan_name = #{planName}
+            </if>
+            <if test="belongTask != null and belongTask != ''">
+                AND a.belong_task = #{belongTask}
+            </if>
+            <if test="bTime != null and eTime != null">
+                and STR_TO_DATE(a.b_time, '%Y-%m-%d')
+                and STR_TO_DATE(a.e_time, '%Y-%m-%d')
+                between STR_TO_DATE(#{bTime}, '%Y-%m-%d')
+                and STR_TO_DATE(#{eTime}, '%Y-%m-%d')
+            </if>
+            <if test="feedback != null and feedback != ''">
+                AND a.feedback = #{feedback}
+            </if>
+            <if test="planCondition != null and planCondition != ''">
+                AND a.plan_condition = #{planCondition}
+            </if>
+        </where>
+    </select>
+
+
+</mapper>

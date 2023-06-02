@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>跟踪的实施中的任务详情页</title>
+    <!-- 引入Vue -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.10/dist/vue.js"></script>
+    <!-- 引入Jquery -->
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入elementUI JS  -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/index.js"></script>
+    <!-- 引入elementUI 样式  -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/element-ui/2.15.13/theme-chalk/index.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" style="width: 1000px">
+    <el-button type="danger" icon="el-icon-arrow-left" @click="back()">返回</el-button>
+    <template>
+        <h2>任务详细信息:</h2>
+            <el-form ref="form" :model="submitTaskForm" label-width="80px" size="mini">
+                <div style="width: 50%">
+                    <el-form-item label="活动名称">
+                        <el-input v-model="submitTaskForm.taskName" :disabled="true"></el-input>
+                    </el-form-item>
+                    <el-form-item label="活动描述">
+                        <el-input v-model="submitTaskForm.taskDesp" :disabled="true"></el-input>
+                    </el-form-item>
+                </div>
+
+                <el-form-item label="开始时间">
+                    <el-col :span="5">
+                        <el-date-picker type="date" placeholder="选择日期"
+                                        v-model="submitTaskForm.bTime"
+                                        style="width: 100%;"
+                                        :disabled="true">
+                        </el-date-picker>
+                    </el-col>
+                    <el-col class="line" :span="0.5">---结束时间</el-col>
+                    <el-col :span="5">
+                        <el-date-picker type="date" placeholder="选择日期"
+                                        v-model="submitTaskForm.eTime"
+                                        style="width: 100%;"
+                                        :disabled="true"></el-date-picker>
+                    </el-col>
+                </el-form-item>
+
+                <el-form-item label="发布人">
+                    <div style="width: 10%">
+                        <el-input
+                                v-model="submitTaskForm.belongZhuguan"
+                                :disabled="true">{{submitTaskForm.belongZhuguan}}
+                        </el-input></div>
+                </el-form-item>
+
+                <el-form-item label="实施人">
+                    <div style="width: 10%">
+                        <el-input
+                                v-model="submitTaskForm.belongStaff" :disabled="true">
+                        </el-input></div>
+                </el-form-item>
+
+                <el-form-item label="任务状态">
+                    <el-select v-model="submitTaskForm.taskCondition" placeholder="请选择任务状态">
+                        <el-option v-for="staff in subordinateStaff"
+                                   :label="staff.taskCondition"
+                                   :value="staff.taskCondition"
+                                   :key="staff.taskCondition">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+
+
+                <el-form-item size="large">
+                    <el-button @click="clean()">重置</el-button>
+                    <el-button type="primary" @click="onSubmit">提交</el-button>
+                </el-form-item>
+            </el-form>
+    </template>
+
+    <p/>
+    <p/>
+    <h2>实施计划:</h2>
+    <template>
+        <el-table
+                ref="multipleTable"
+                :data="tableData"
+                tooltip-effect="dark"
+                style="width: 100%"
+                @selection-change="handleSelectionChange">
+            <el-table-column
+                    type="selection"
+                    width="50">
+            </el-table-column>
+            <el-table-column
+                    prop="planName"
+                    label="计划名称"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="planCondition"
+                    label="完成状态"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="feedback"
+                    label="是否反馈"
+                    width="100">
+            </el-table-column>
+            <el-table-column
+                    prop="bTime"
+                    label="开始时间"
+                    width="150">
+            </el-table-column>
+            <el-table-column
+                    prop="eTime"
+                    label="结束时间"
+                    width="150">
+            </el-table-column>
+            <el-table-column label="操作" width="150">
+                <!--使用插槽，方便获取当前行数据-->
+                <template slot-scope="scope">
+                    <el-button type="info" @click="showDetails(scope.row)">详细信息</el-button>
+                    <el-dialog title="计划详细信息" :visible.sync="dialogTableVisible">
+                        <template>
+                            <el-descriptions direction="vertical" :column="3" border>
+                                <el-descriptions-item label="计划名称">{{ planDetailInfo.planName }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="计划描述" :span="2">{{ planDetailInfo.planDesp }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="开始时间">{{ planDetailInfo.bTime }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="结束时间" :span="2">{{ planDetailInfo.eTime }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="上层任务">{{ planDetailInfo.belongTask }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="计划状态" :span="2">{{ planDetailInfo.planCondition }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="反馈状态">{{ planDetailInfo.feedback }}
+                                </el-descriptions-item>
+                                <el-descriptions-item label="反馈">{{ planDetailInfo.returnInfo }}
+                                </el-descriptions-item>
+                            </el-descriptions>
+                        </template>
+                    </el-dialog>
+                </template>
+            </el-table-column>
+        </el-table>
+    </template>
+</div>
+</body>
+<script>
+    let vueApp = new Vue({
+        el: "#app",
+        data: {
+            //任务状态下拉栏的数据
+            subordinateStaff:[
+                {'taskCondition':'未实施'},
+                {'taskCondition':'已实施'},
+                {'taskCondition':'实施中'}],
+            //页面加载时获取的，当前任务的详细信息
+            submitTaskForm:{},
+            //计划描述窗口的显示状态
+            dialogTableVisible: false,
+            //页面加载时获取的，该任务所属下，所有计划的信息
+            tableData: [{}],
+            //点击当前一条计划的详细信息
+            planDetailInfo: {},
+        },
+        methods: {
+            //取消编辑
+            clean(){
+                window.location.reload();
+            },
+            //返回上一层页面
+            back() {
+                window.history.go(-1)
+            },
+            ////点击一条计划的详细信息，true显示窗口，当前行的数据传给planDetailInfo
+            showDetails(info) {
+                this.planDetailInfo = info;
+                this.dialogTableVisible = true;
+            },
+            onSubmit(){
+                $.ajax({
+                    url: '/task/editTask',
+                    dataType: 'json',
+                    type: 'post',
+                    data: JSON.stringify(this.submitTaskForm),
+                    contentType: 'application/json',
+                    success: function () {
+
+                    }, error:function () {
+
+                    },
+                });
+                alert("编辑成功了！");
+            },
+        },
+        created() {
+            //解析：window.location.href='/manager/taskInfo.html?id='+id    路径中传递过来的任务id
+            const searchParams = new URLSearchParams(window.location.search);
+            this.id = searchParams.get('id');
+            console.log(this.id)
+
+            if (sessionStorage.getItem('isLoggedIn') != 2) {
+                // 用户没有登录，重定向到登录页面
+                window.location.href = '/login.html';
+            } else {
+                //根据任务id查询该任务详情
+                $.ajax({
+                    url: '/task/findTaskById?id=' + this.id,
+                    type: 'get',
+                    dataType: 'json',
+                    success: (data) => {
+                        this.submitTaskForm = data;
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    },
+                });
+
+                //根据任务id查询该任务下的所有计划
+                $.ajax({
+                    url: '/plan/findPlanByTaskId?id=' + this.id,
+                    type: 'get',
+                    dataType: 'json',
+                    success: (data) => {
+                        this.tableData = data;
+                    },
+                    error: function (data) {
+                        console.log(data);
+                    },
+                });
+            }
+        }
+    })
+</script>
+</html>

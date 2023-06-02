@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.datang.demos.mapper.UserMapper">
+    <select id="findByName" resultType="user">
+        select *
+        from user
+        where username = #{username}
+    </select>
+
+    <select id="findByBossName" resultType="user">
+        SELECT a.id,
+               a.username,
+               a.password,
+               b.username AS belong,
+               a.gender,
+               a.entryTime,
+               a.position,
+               a.birthday,
+               a.education,
+               a.major,
+               a.experience
+        FROM user a
+                 LEFT JOIN user b
+                           ON a.belong = b.id
+        where b.username = #{username};
+    </select>
+
+    <select id="findAllUser" resultType="user">
+        SELECT a.id,
+               a.username,
+               a.password,
+               b.username AS belong,
+               a.gender,
+               a.entryTime,
+               a.position,
+               a.birthday,
+               a.education,
+               a.major,
+               a.experience
+        FROM user a
+                 LEFT JOIN user b
+                           ON a.belong = b.id;
+    </select>
+
+    <update id="editUser" parameterType="com.example.datang.demos.entity.User">
+        UPDATE user
+        SET username   = #{username},
+            password   = #{password},
+            gender     = #{gender},
+            entryTime  = #{entryTime},
+            position   = #{position},
+            birthday   = #{birthday},
+            education  = #{education},
+            major      = #{major},
+            experience = #{experience}
+        WHERE id = #{id};
+    </update>
+
+    <delete id="delUserById" parameterType="int">
+        DELETE FROM user WHERE id = #{id}
+    </delete>
+
+    <insert id="addUser" parameterType="com.example.datang.demos.entity.User">
+        INSERT INTO user (username, password, belong, gender, entryTime, position, birthday, education, major, experience)
+        VALUES (#{username}, #{password}, #{belong}, #{gender}, #{entryTime}, #{position}, #{birthday}, #{education}, #{major}, #{experience});
+    </insert>
+</mapper>
